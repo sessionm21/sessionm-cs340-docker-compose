@@ -33,7 +33,10 @@ version: '2'
 # starting containers with full rebuild
 # - run ```docker-compose up --build --force-recreate```
 #
-# stopping containers
+# run container as daemon
+# - run ```docker-compose up -d```
+#
+# stopping daemonized containers
 # - run ```docker-compose down```
 #
 
