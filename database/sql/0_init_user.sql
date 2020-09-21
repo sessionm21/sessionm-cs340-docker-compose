@@ -1,0 +1,3 @@
+CREATE DATABASE cs340_;
+GRANT ALL privileges ON `cs340_`.* TO 'user';
+FLUSH PRIVILEGES;

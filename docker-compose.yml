@@ -1,0 +1,105 @@
+version: '2'
+
+### Notes
+## configuration
+#
+# network_mode
+# - ```network_mode: bridge``` forces containers to use the docker0 interface
+#   allowing for easier firewalld configuration
+#
+## containers
+#
+# nginx
+# - to route requests by sub uri into the internal docker0 intranet
+#
+# mariadb
+# - a mysql compatible database for storing data in a relational database
+#
+# phpmyadmin
+# - administration panel for mysql, an ease of use tool
+#
+# template
+# - nodejs template project
+#
+# volumes 
+# - docker volumes persist data or share folders from the host machine
+# - run ```docker volume ls``` to list active volumes
+#
+## docker-compose commands 
+#
+# starting containers
+# - run ```docker-compose up```
+#
+# starting containers with full rebuild
+# - run ```docker-compose up --build --force-recreate```
+#
+# stopping containers
+# - run ```docker-compose down```
+#
+
+volumes:
+  appdata:
+  mariadb:
+
+services:
+  # Nginx router to handle multiple NodeJS apps internally on one port
+  router:
+    build: router
+    restart: always
+    network_mode: bridge
+    # Make available on port 9001
+    ports:
+      - 8080:80
+    environment:
+     - NGINX_PORT=80
+    links:
+     - template
+    # Add www folder as volume to reflect current changes, read
+    volumes:
+     - ./router/www:/www
+  # Mariadb database for NodeJS applications
+  db:
+    build: ./database
+    restart: always
+    network_mode: bridge
+    environment:
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: password1234
+    # Store database on docker volume for persistence, read/write
+    volumes:
+      - mariadb:/var/lib/mysql
+  # Do not add phpmyadmin to NGINX, do not expose to internet
+  phpmyadmin:
+    image: phpmyadmin
+    network_mode: bridge
+    environment:
+      - PMA_HOST=db 
+      - PMA_USER=user
+      - PMA_PASSWORD=password
+    ports:
+      - 8002:80
+    links:
+      - db
+    restart: always
+    depends_on:
+      - db 
+  # NodeJS applications, add to NGINX
+  template: # Template project with live-reload
+    build: ./template
+    network_mode: bridge
+    environment:
+      - MARIADB_HOST=db 
+      - MARIADB_USER=user
+      - MARIADB_PASSWORD=password
+      - MARIADB_DATABASE=cs340_
+      - NODE_PORT=80
+    links:
+      - db
+    restart: always
+    depends_on:
+      - db 
+    # Add www folder as volume to reflect current changes, read/write
+    volumes:
+      - ./template/src:/usr/src/app
+      - /usr/src/app/node_modules
