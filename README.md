@@ -22,4 +22,8 @@
 
 - In ```./new_project/src/package.json``` change ```name``` to ```new_project``` for correctness.
 
+# Access
 
+- Main site is available at 127.0.0.1:8080
+
+- PHPMyAdmin is available at 127.0.0.1:8081
